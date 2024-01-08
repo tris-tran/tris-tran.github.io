@@ -9,8 +9,8 @@
 <meta property="og:title" content="Java - How to run a millon threads?" />
 <meta name="author" content="Tristan Ochoa" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="A personal tech blog" />
-<meta property="og:description" content="A personal tech blog" />
+<meta name="description" content="1 2 CountDownLatch countDownLatch = new CountDownLatch(1); CountDownLatch allThreadsWait = new CountDownLatch(threadCount);" />
+<meta property="og:description" content="1 2 CountDownLatch countDownLatch = new CountDownLatch(1); CountDownLatch allThreadsWait = new CountDownLatch(threadCount);" />
 <link rel="canonical" href="https://riggraz.dev/java-threads-benchmark.html" />
 <meta property="og:url" content="https://riggraz.dev/java-threads-benchmark.html" />
 <meta property="og:site_name" content="Tristan" />
@@ -19,9 +19,9 @@
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="Java - How to run a millon threads?" />
 <script type="application/ld+json">
-{"headline":"Java - How to run a millon threads?","dateModified":"2024-01-07T00:00:00+01:00","datePublished":"2024-01-07T00:00:00+01:00","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://riggraz.dev/java-threads-benchmark.html"},"author":{"@type":"Person","name":"Tristan Ochoa"},"url":"https://riggraz.dev/java-threads-benchmark.html","description":"A personal tech blog","@context":"https://schema.org"}</script>
+{"headline":"Java - How to run a millon threads?","dateModified":"2024-01-07T00:00:00+01:00","datePublished":"2024-01-07T00:00:00+01:00","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://riggraz.dev/java-threads-benchmark.html"},"author":{"@type":"Person","name":"Tristan Ochoa"},"url":"https://riggraz.dev/java-threads-benchmark.html","description":"1 2 CountDownLatch countDownLatch = new CountDownLatch(1); CountDownLatch allThreadsWait = new CountDownLatch(threadCount);","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
-<link type="application/atom+xml" rel="alternate" href="https://riggraz.dev/feed.xml" title="Tristan" /><link rel="shortcut icon" type="image/x-icon" href="/logo.png" />
+<link type="application/atom+xml" rel="alternate" href="https://riggraz.dev/feed.xml" title="Tristan" /><link rel="shortcut icon" type="image/x-icon" href="/logo.jpeg" />
   <link rel="stylesheet" href="/assets/css/main.css" />
 </head><body a="light">
     <main class="page-content" aria-label="Content">
@@ -34,6 +34,76 @@
   <h1>Java - How to run a millon threads?</h1>
 
   
+<figure class="highlight"><pre><code class="language-java" data-lang="java"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+</pre></td><td class="code"><pre><span class="nc">CountDownLatch</span> <span class="n">countDownLatch</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">CountDownLatch</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+<span class="nc">CountDownLatch</span> <span class="n">allThreadsWait</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">CountDownLatch</span><span class="o">(</span><span class="n">threadCount</span><span class="o">);</span>
+
+<span class="nc">ThreadFactory</span> <span class="n">threadFactory</span> <span class="o">=</span> <span class="n">r</span> <span class="o">-&gt;</span> <span class="o">{</span>
+    <span class="nc">Thread</span> <span class="n">thread</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Thread</span><span class="o">(</span><span class="n">r</span><span class="o">);</span>
+    <span class="n">thread</span><span class="o">.</span><span class="na">setDaemon</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
+    <span class="k">return</span> <span class="n">thread</span><span class="o">;</span>
+<span class="o">};</span>
+
+<span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">threadCount</span><span class="o">;</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>
+
+    <span class="n">threadFactory</span><span class="o">.</span><span class="na">newThread</span><span class="o">(()</span> <span class="o">-&gt;</span> <span class="o">{</span>
+        <span class="c1">//We wait for all threads to start</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">countDownLatch</span><span class="o">.</span><span class="na">await</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">InterruptedException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">atomicErrors</span><span class="o">.</span><span class="na">addAndGet</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span>
+        <span class="o">}</span>
+
+        <span class="c1">//We work</span>
+        <span class="kt">int</span><span class="o">[]</span> <span class="n">work</span> <span class="o">=</span> <span class="o">{</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">};</span>
+        <span class="kt">long</span> <span class="n">milis</span> <span class="o">=</span> <span class="nc">System</span><span class="o">.</span><span class="na">currentTimeMillis</span><span class="o">();</span>
+        <span class="nc">Methods</span><span class="o">.</span><span class="na">busyworkForMilis</span><span class="o">(</span><span class="n">milis</span><span class="o">,</span> <span class="mi">1000</span><span class="o">,</span> <span class="n">work</span><span class="o">);</span>
+
+        <span class="c1">//We finish working</span>
+        <span class="n">allThreadsWait</span><span class="o">.</span><span class="na">countDown</span><span class="o">();</span>
+    <span class="o">}).</span><span class="na">start</span><span class="o">();</span>
+<span class="o">}</span>
+
+<span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">printf</span><span class="o">(</span><span class="s">"All threads created %d\n"</span><span class="o">,</span> <span class="n">threadCount</span><span class="o">);</span>
+<span class="c1">//We allow all threasd to work all at once.</span>
+<span class="n">countDownLatch</span><span class="o">.</span><span class="na">countDown</span><span class="o">();</span>
+<span class="c1">//We wait for all threads to finish</span>
+<span class="n">allThreadsWait</span><span class="o">.</span><span class="na">await</span><span class="o">();</span>
+</pre></td></tr></tbody></table></code></pre></figure>
+
 
 </article>
       </div>
